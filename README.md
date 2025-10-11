@@ -1,4 +1,4 @@
-# Smart Task Planner 🎯
+# Smart Task Planner 
 
 > AI-powered project planning with CPM/PERT scheduling - Turn your goals into actionable tasks with smart dependencies and timelines
 
@@ -7,22 +7,22 @@
 [![Python](https://img.shields.io/badge/Python-3.9+-blue)](https://www.python.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 
-## ✨ Features
+##  Features
 
-- **🤖 AI-Powered Task Generation**: Uses Google Generative AI (Gemini 2.0 Flash) to intelligently break down goals into actionable tasks
-- **📊 Critical Path Analysis**: Automatically identifies bottlenecks and critical tasks using CPM (Critical Path Method)
-- **⏱️ PERT Estimation**: Three-point estimates (optimistic, most likely, pessimistic) for realistic scheduling
-- **🎨 Interactive Gantt Chart**: Beautiful visual timeline with task dependencies
-- **✏️ Task Editing**: Inline editing of tasks with automatic schedule recomputation
-- **💬 Natural Language Updates**: Modify plans using simple instructions like "add a testing phase after development"
-- **🔄 Reflective Planning**: AI-powered plan refinement based on user feedback
-- **📈 Progress Tracking**: Mark tasks complete and track project progress
-- **🧠 Insight Engine**: Automatic deadline analysis, slack diagnostics and prioritized risk recommendations
-- **📥 One-Click Export**: Download the entire schedule as a CSV for sharing or reporting
-- **🎯 Dependency Management**: Visual dependency graph with automatic cycle detection
-- **� Secure API Key Management**: API keys loaded from environment variables, never committed to version control
+- **AI-Powered Task Generation**: Uses Google Generative AI (Gemini 2.0 Flash) to intelligently break down goals into actionable tasks
+- **Critical Path Analysis**: Automatically identifies bottlenecks and critical tasks using CPM (Critical Path Method)
+- **PERT Estimation**: Three-point estimates (optimistic, most likely, pessimistic) for realistic scheduling
+- **Interactive Gantt Chart**: Beautiful visual timeline with task dependencies
+- **Task Editing**: Inline editing of tasks with automatic schedule recomputation
+- **Natural Language Updates**: Modify plans using simple instructions like "add a testing phase after development"
+- **Reflective Planning**: AI-powered plan refinement based on user feedback
+- **Progress Tracking**: Mark tasks complete and track project progress
+- **Insight Engine**: Automatic deadline analysis, slack diagnostics and prioritized risk recommendations
+- **One-Click Export**: Download the entire schedule as a CSV for sharing or reporting
+- **Dependency Management**: Visual dependency graph with automatic cycle detection
+- **Secure API Key Management**: API keys loaded from environment variables, never committed to version control
 
-## 🏗️ Architecture
+## Architecture
 
 ### Backend (FastAPI + Python)
 - **FastAPI**: Modern, fast API framework with automatic OpenAPI documentation
@@ -39,7 +39,7 @@
 - **Lucide React**: Beautiful icon library
 - **Axios**: HTTP client for API communication
 
-## 📋 Prerequisites
+## Prerequisites
 
 Before you begin, ensure you have the following:
 
@@ -61,7 +61,7 @@ Before you begin, ensure you have the following:
    - Copy the API key (starts with `AIza...`)
    - **Important**: Keep this key secure and never commit it to version control
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Clone the Repository
 
@@ -164,7 +164,7 @@ Click "Refine Plan" and provide feedback:
 "Include documentation tasks"
 ```
 
-## 🎯 API Endpoints
+## API Endpoints
 
 ### Plans
 
@@ -192,7 +192,7 @@ Click "Refine Plan" and provide feedback:
 
 Full API documentation: `http://localhost:8000/docs`
 
-## 🧪 Testing
+## Testing
 
 ### Backend Tests
 
@@ -221,7 +221,7 @@ The test suite includes:
 - ✅ Circular dependency detection
 - ✅ Edge cases (empty tasks, invalid dependencies)
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 smart-task-planner/
@@ -258,7 +258,7 @@ smart-task-planner/
 └── README.md                    # This file
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -289,7 +289,7 @@ Available Gemini models:
 
 Check [Google AI documentation](https://ai.google.dev/models/gemini) for the latest models.
 
-## 🚀 Deployment
+##  Deployment
 
 ### Backend (Render / Railway / Cloud Run)
 
@@ -310,11 +310,10 @@ Check [Google AI documentation](https://ai.google.dev/models/gemini) for the lat
 
 **Security Note**: Never commit your API keys. Always use environment variables and keep the `.env` file in `.gitignore`.
 
-## 🎨 Screenshots & Features
+##  Screenshots & Features
 
 ### Home Page
 - Clean, modern interface with gradient backgrounds
-- Real-time Ollama health check
 - Recent plans history
 - Quick start with goal input
 
@@ -332,12 +331,12 @@ Check [Google AI documentation](https://ai.google.dev/models/gemini) for the lat
 - Automatic schedule recomputation
 - Validation and error handling
 
-## 🧠 How It Works
+## How It Works
 
 ### 1. Task Generation (LLM)
 ```
-User Goal → Qwen3 LLM → Structured Task List
-## 🧠 How It Works
+User Goal → Gemini LLM → Structured Task List
+##  How It Works
 
 ### 1. Task Generation (AI-Powered)
 ```
@@ -381,55 +380,55 @@ The system automatically analyzes:
 ### 5. Complete Workflow
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  User Input: Goal + Optional Deadline                          │
+    User Input: Goal + Optional Deadline                          
 └────────────────────┬────────────────────────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  Google Gemini API: Generate Domain-Specific Tasks             │
-│  • Primary prompt with enterprise terminology                   │
-│  • Retry with simplified prompt if needed                       │
-│  • Dynamic fallback (pharma/SaaS/marketing/general)            │
+   • Google Gemini API: Generate Domain-Specific Tasks             
+   • Primary prompt with enterprise terminology                   
+   • Retry with simplified prompt if needed                       
+   • Dynamic fallback (pharma/SaaS/marketing/general)            
 └────────────────────┬────────────────────────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  Task Parsing & Validation                                      │
-│  • JSON extraction from AI response                             │
-│  • Validate PERT estimates (optimistic/likely/pessimistic)     │
-│  • Verify dependencies (no cycles, valid indices)              │
+   •Task Parsing & Validation                                      
+   • JSON extraction from AI response                             
+   • Validate PERT estimates (optimistic/likely/pessimistic)     
+   • Verify dependencies (no cycles, valid indices)              
 └────────────────────┬────────────────────────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  Schedule Computation (NetworkX + CPM/PERT)                     │
-│  • Build directed acyclic graph (DAG)                           │
-│  • Calculate expected durations (PERT formula)                  │
-│  • Forward pass: earliest start/finish times                    │
-│  • Backward pass: latest start/finish times                     │
-│  • Calculate slack for each task                                │
-│  • Identify critical path (longest path)                        │
+   • Schedule Computation (NetworkX + CPM/PERT)                     
+   • Build directed acyclic graph (DAG)                           
+   • Calculate expected durations (PERT formula)                  
+   • Forward pass: earliest start/finish times                    
+   • Backward pass: latest start/finish times                     
+   • Calculate slack for each task                                
+   • Identify critical path (longest path)                        
 └────────────────────┬────────────────────────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  Database Storage (SQLAlchemy + SQLite)                         │
-│  • Save plan with metadata                                      │
-│  • Store tasks with scheduling data                             │
-│  • Persist critical path and total duration                     │
+   •Database Storage (SQLAlchemy + SQLite)                         
+   • Save plan with metadata                                      
+   • Store tasks with scheduling data                             
+   • Persist critical path and total duration                     
 └────────────────────┬────────────────────────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  Frontend Display (Next.js)                                     │
-│  • Interactive Gantt chart visualization                        │
-│  • Task cards with edit/complete actions                        │
-│  • Critical path highlighting (red)                             │
-│  • Progress tracking and insights dashboard                     │
+   • Frontend Display (Next.js)                                     
+   • Interactive Gantt chart visualization                        
+   • Task cards with edit/complete actions                        
+   • Critical path highlighting (red)                             
+   • Progress tracking and insights dashboard                     
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## 💡 Tips & Best Practices
+##  Tips & Best Practices
 
 1. **Be Specific with Goals**: "Launch a mobile app with user authentication and payment in 3 months" works better than "make an app"
 
@@ -441,7 +440,7 @@ The system automatically analyzes:
 
 5. **Track Progress**: Mark tasks complete to visualize progress and motivate your team
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### "Failed to create plan" or "Google Generative AI error"
 - **Check API Key**: Ensure `GOOGLE_GENAI_API_KEY` is correctly set in `backend/.env`
@@ -467,7 +466,7 @@ The system automatically analyzes:
 - Ensure backend is running on `http://localhost:8000`
 - Check `frontend/.env.local` has correct `NEXT_PUBLIC_API_URL`
 
-## 🤝 Contributing
+##  Contributing
 
 This project was created as a submission for Unthinkable. If you'd like to extend it:
 
@@ -477,11 +476,11 @@ This project was created as a submission for Unthinkable. If you'd like to exten
 4. Add tests
 5. Submit a pull request
 
-## 📜 License
+##  License
 
 This project is created for educational and demonstration purposes.
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - **Google AI**: For providing the powerful Gemini models via Generative AI API
 - **FastAPI**: For the excellent Python web framework
@@ -489,7 +488,7 @@ This project is created for educational and demonstration purposes.
 - **NetworkX**: For robust graph algorithms powering CPM/PERT calculations
 - **Unthinkable**: For the opportunity to build this innovative project
 
-## 📧 Contact
+##  Contact
 
 Built with ❤️ for Unthinkable
 
