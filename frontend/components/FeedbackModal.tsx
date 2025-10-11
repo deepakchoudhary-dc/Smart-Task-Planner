@@ -66,7 +66,7 @@ export default function FeedbackModal({ onSubmit, onClose }: FeedbackModalProps)
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="e.g., Add more buffer time between tasks, include a code review phase, make testing more detailed..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-500"
               rows={6}
               disabled={loading}
             />

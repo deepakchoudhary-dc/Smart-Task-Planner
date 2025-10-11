@@ -9,7 +9,7 @@
 
 ## ✨ Features
 
-- **🤖 AI-Powered Task Generation**: Uses local Qwen3 LLM via Ollama to break down goals into actionable tasks
+- **🤖 AI-Powered Task Generation**: Uses Google Generative AI (Gemini 2.0 Flash) to intelligently break down goals into actionable tasks
 - **📊 Critical Path Analysis**: Automatically identifies bottlenecks and critical tasks using CPM (Critical Path Method)
 - **⏱️ PERT Estimation**: Three-point estimates (optimistic, most likely, pessimistic) for realistic scheduling
 - **🎨 Interactive Gantt Chart**: Beautiful visual timeline with task dependencies
@@ -20,15 +20,15 @@
 - **🧠 Insight Engine**: Automatic deadline analysis, slack diagnostics and prioritized risk recommendations
 - **📥 One-Click Export**: Download the entire schedule as a CSV for sharing or reporting
 - **🎯 Dependency Management**: Visual dependency graph with automatic cycle detection
-- **🔒 Privacy-First**: All AI processing happens locally - no data leaves your machine
+- **� Secure API Key Management**: API keys loaded from environment variables, never committed to version control
 
 ## 🏗️ Architecture
 
 ### Backend (FastAPI + Python)
 - **FastAPI**: Modern, fast API framework with automatic OpenAPI documentation
+- **Google Generative AI**: Cloud-based LLM (Gemini 2.0 Flash) for intelligent task generation
 - **NetworkX**: Graph algorithms for CPM/PERT calculations and critical path analysis
 - **SQLAlchemy**: ORM for database management (SQLite for demo, PostgreSQL-ready)
-- **Ollama API**: Local LLM integration for task generation
 - **Pydantic**: Type-safe request/response validation
 
 ### Frontend (Next.js 14 + React)
@@ -41,7 +41,7 @@
 
 ## 📋 Prerequisites
 
-Before you begin, ensure you have the following installed:
+Before you begin, ensure you have the following:
 
 1. **Python 3.9+**
    ```bash
@@ -54,13 +54,12 @@ Before you begin, ensure you have the following installed:
    npm --version
    ```
 
-3. **Ollama** (for local AI)
-   - Download from [ollama.ai](https://ollama.ai/)
-   - Install and start the Ollama service
-   - Pull the Qwen3 model:
-     ```bash
-     ollama pull qwen2.5:1.5b
-     ```
+3. **Google Generative AI API Key**
+   - Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+   - Create or sign in to your Google account
+   - Click "Create API Key"
+   - Copy the API key (starts with `AIza...`)
+   - **Important**: Keep this key secure and never commit it to version control
 
 ## 🚀 Quick Start
 
@@ -88,12 +87,18 @@ python -m venv venv
 # Install dependencies
 pip install -r requirements.txt
 
+# Create .env file with your API key
+# Copy the example file and add your actual API key
+echo "GOOGLE_GENAI_API_KEY=your_actual_api_key_here" > .env
+
 # Start the backend server
 uvicorn app.main:app --reload
 
 # Server will start at http://localhost:8000
 # API documentation available at http://localhost:8000/docs
 ```
+
+**Important**: Replace `your_actual_api_key_here` with your actual Google API key from step 3 of Prerequisites.
 
 ### 3. Frontend Setup
 
@@ -112,14 +117,17 @@ npm run dev
 # Application will start at http://localhost:3000
 ```
 
-### 4. Verify Ollama is Running
+### 4. Verify Setup
 
-```bash
-# Check Ollama status
-ollama list
+1. **Check Backend Health**:
+   - Visit `http://localhost:8000` - should show API health status
+   - Visit `http://localhost:8000/docs` - interactive API documentation
+   - Visit `http://localhost:8000/api/health/genai` - verify Google AI connection
 
-# Should show qwen2.5:1.5b model
-```
+2. **Check Frontend**:
+   - Visit `http://localhost:3000` - should show the Smart Task Planner interface
+
+If you see any errors about the API key, make sure you've correctly set `GOOGLE_GENAI_API_KEY` in `backend/.env`.
 
 ## 📖 Usage
 
@@ -164,7 +172,12 @@ Click "Refine Plan" and provide feedback:
 |----------|--------|-------------|
 | `/api/plan` | POST | Create a new plan from a goal |
 | `/api/plans` | GET | List all plans (summary) |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/plan` | POST | Create a new plan from a goal |
+| `/api/plans` | GET | List all plans (summary) |
 | `/api/plan/{id}` | GET | Get plan details |
+| `/api/plan/{id}/insights` | GET | Get analytics and recommendations for a plan |
 | `/api/plan/{id}/update` | PUT | Update plan with modified tasks |
 | `/api/plan/{id}/feedback` | POST | Refine plan with feedback |
 | `/api/plan/{id}/natural-update` | POST | Natural language update |
@@ -175,7 +188,7 @@ Click "Refine Plan" and provide feedback:
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/` | GET | API health check |
-| `/api/health/ollama` | GET | Check Ollama service status |
+| `/api/health/genai` | GET | Check Google Generative AI service status |
 
 Full API documentation: `http://localhost:8000/docs`
 
@@ -251,8 +264,8 @@ smart-task-planner/
 
 #### Backend (`backend/.env`)
 ```env
-DATABASE_URL=sqlite:///./smart_task_planner.db
-OLLAMA_HOST=http://localhost:11434
+# Required: Your Google Generative AI API key
+GOOGLE_GENAI_API_KEY=your_api_key_here
 ```
 
 #### Frontend (`frontend/.env.local`)
@@ -260,38 +273,42 @@ OLLAMA_HOST=http://localhost:11434
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-### Changing the LLM Model
+### Changing the AI Model
 
-Edit `backend/app/services.py`:
+The project uses Google's Gemini 2.0 Flash model by default. To use a different Gemini model, edit `backend/app/services.py`:
+
 ```python
-self.model = "qwen2.5:1.5b"  # Change to your preferred model
+# In GoogleGenAIService.__init__
+self.model = genai.GenerativeModel('gemini-2.0-flash')  # Change to your preferred model
 ```
 
-Available Qwen models:
-- `qwen2.5:0.5b` - Fastest, smallest
-- `qwen2.5:1.5b` - Recommended balance
-- `qwen2.5:3b` - Better quality
-- `qwen2.5:7b` - Best quality (requires more RAM)
+Available Gemini models:
+- `gemini-2.0-flash` - Fast, efficient (recommended)
+- `gemini-1.5-pro` - More powerful reasoning
+- `gemini-1.5-flash` - Balanced performance
+
+Check [Google AI documentation](https://ai.google.dev/models/gemini) for the latest models.
 
 ## 🚀 Deployment
 
-### Backend (Render / Railway)
+### Backend (Render / Railway / Cloud Run)
 
 1. Push code to GitHub
-2. Connect repository to Render/Railway
+2. Connect repository to your hosting platform
 3. Set build command: `pip install -r requirements.txt`
 4. Set start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-5. Add environment variables
+5. **Add environment variable**: `GOOGLE_GENAI_API_KEY=<your-api-key>`
+6. Deploy
 
-### Frontend (Vercel)
+### Frontend (Vercel / Netlify)
 
 1. Push code to GitHub
-2. Import project in Vercel
+2. Import project in Vercel/Netlify
 3. Set root directory to `frontend`
 4. Add environment variable: `NEXT_PUBLIC_API_URL=<your-backend-url>`
 5. Deploy
 
-**Note**: For production deployment with Ollama, you'll need a server with Ollama installed or use a cloud-based LLM API (OpenAI, Anthropic, etc.) by modifying the `services.py` file.
+**Security Note**: Never commit your API keys. Always use environment variables and keep the `.env` file in `.gitignore`.
 
 ## 🎨 Screenshots & Features
 
@@ -320,8 +337,18 @@ Available Qwen models:
 ### 1. Task Generation (LLM)
 ```
 User Goal → Qwen3 LLM → Structured Task List
-                         (name, description, durations, dependencies)
+## 🧠 How It Works
+
+### 1. Task Generation (AI-Powered)
 ```
+User Goal → Google Gemini 2.0 Flash → Structured Task List
+                                      (name, description, durations, dependencies)
+```
+
+The system uses sophisticated prompts to generate domain-specific, enterprise-ready tasks:
+- **Primary Attempt**: Generates 6-12 tailored tasks based on goal keywords
+- **Retry Logic**: Fallback with simplified prompt if first attempt fails
+- **Dynamic Fallback**: Heuristic-based task generation for pharma, SaaS, marketing, or general projects
 
 ### 2. Schedule Computation (CPM/PERT)
 ```
@@ -331,11 +358,75 @@ Tasks → Build DAG → Topological Sort → Forward Pass (ES, EF)
                                     → Identify Critical Path
 ```
 
+Using NetworkX graph algorithms:
+- **Forward Pass**: Calculate earliest start/finish times
+- **Backward Pass**: Calculate latest start/finish times
+- **Slack Analysis**: Identify buffer time for each task
+- **Critical Path**: Find tasks with zero slack (project bottlenecks)
+
 ### 3. PERT Formula
 ```
 Expected Duration (TE) = (Optimistic + 4 × Most Likely + Pessimistic) / 6
 Slack = Latest Start - Earliest Start
 Critical Path = Tasks with Slack = 0
+```
+
+### 4. Insight Engine
+The system automatically analyzes:
+- **Risk Assessment**: High/Medium/Low based on buffer, slack, and progress
+- **Deadline Status**: On track / At risk / Behind schedule
+- **Recommendations**: Prioritized actions to improve schedule health
+- **High-Risk Tasks**: Tasks with minimal slack that need attention
+
+### 5. Complete Workflow
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  User Input: Goal + Optional Deadline                          │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Google Gemini API: Generate Domain-Specific Tasks             │
+│  • Primary prompt with enterprise terminology                   │
+│  • Retry with simplified prompt if needed                       │
+│  • Dynamic fallback (pharma/SaaS/marketing/general)            │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Task Parsing & Validation                                      │
+│  • JSON extraction from AI response                             │
+│  • Validate PERT estimates (optimistic/likely/pessimistic)     │
+│  • Verify dependencies (no cycles, valid indices)              │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Schedule Computation (NetworkX + CPM/PERT)                     │
+│  • Build directed acyclic graph (DAG)                           │
+│  • Calculate expected durations (PERT formula)                  │
+│  • Forward pass: earliest start/finish times                    │
+│  • Backward pass: latest start/finish times                     │
+│  • Calculate slack for each task                                │
+│  • Identify critical path (longest path)                        │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Database Storage (SQLAlchemy + SQLite)                         │
+│  • Save plan with metadata                                      │
+│  • Store tasks with scheduling data                             │
+│  • Persist critical path and total duration                     │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Frontend Display (Next.js)                                     │
+│  • Interactive Gantt chart visualization                        │
+│  • Task cards with edit/complete actions                        │
+│  • Critical path highlighting (red)                             │
+│  • Progress tracking and insights dashboard                     │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ## 💡 Tips & Best Practices
@@ -352,15 +443,17 @@ Critical Path = Tasks with Slack = 0
 
 ## 🐛 Troubleshooting
 
-### "Ollama not detected"
-- Ensure Ollama is installed and running: `ollama list`
-- Check the service is accessible: `curl http://localhost:11434/api/tags`
-- Pull the required model: `ollama pull qwen2.5:1.5b`
+### "Failed to create plan" or "Google Generative AI error"
+- **Check API Key**: Ensure `GOOGLE_GENAI_API_KEY` is correctly set in `backend/.env`
+- **Verify API Key**: Visit `http://localhost:8000/api/health/genai` to test the connection
+- **Check Quota**: Ensure your Google AI API has available quota/credits
+- **Backend Logs**: Check terminal for detailed error messages
+- **Fallback**: The system automatically generates a basic plan if AI fails
 
-### "Failed to create plan"
-- Check backend logs in the terminal
-- Verify Ollama is responding (sometimes first request is slow)
-- Try the fallback by waiting - it auto-generates a basic plan
+### "API Key Error" on Startup
+- Make sure `.env` file exists in the `backend/` directory
+- Verify the API key format (should start with `AIza...`)
+- Get a new key from [Google AI Studio](https://makersuite.google.com/app/apikey)
 
 ### TypeScript Errors in Frontend
 - Run `npm install` to ensure all dependencies are installed
@@ -369,6 +462,10 @@ Critical Path = Tasks with Slack = 0
 ### Port Already in Use
 - Backend: Change port with `uvicorn app.main:app --port 8001`
 - Frontend: Change port with `npm run dev -- -p 3001`
+
+### CORS Errors
+- Ensure backend is running on `http://localhost:8000`
+- Check `frontend/.env.local` has correct `NEXT_PUBLIC_API_URL`
 
 ## 🤝 Contributing
 
@@ -386,12 +483,11 @@ This project is created for educational and demonstration purposes.
 
 ## 🙏 Acknowledgments
 
-- **Qwen Team**: For the excellent open-source LLM
-- **Ollama**: For making local AI accessible
-- **FastAPI**: For the amazing Python framework
-- **Next.js Team**: For the best React framework
-- **NetworkX**: For graph algorithms
-- **Unthinkable**: For the opportunity to build this project
+- **Google AI**: For providing the powerful Gemini models via Generative AI API
+- **FastAPI**: For the excellent Python web framework
+- **Next.js Team**: For the outstanding React framework
+- **NetworkX**: For robust graph algorithms powering CPM/PERT calculations
+- **Unthinkable**: For the opportunity to build this innovative project
 
 ## 📧 Contact
 
@@ -399,11 +495,13 @@ Built with ❤️ for Unthinkable
 
 ---
 
-**Note**: This is a demonstration project showcasing AI-powered project planning. For production use, consider:
-- Adding user authentication
+**Note**: This is a demonstration project showcasing AI-powered project planning with enterprise-grade scheduling algorithms. For production use, consider:
+- Adding user authentication and authorization
 - Implementing team collaboration features
-- Using PostgreSQL for production database
-- Adding file export (PDF, MS Project, iCal)
+- Using PostgreSQL or MySQL for production database
+- Adding file export (PDF, MS Project, Excel, iCal)
 - Implementing WebSocket for real-time updates
 - Adding mobile responsiveness improvements
-- Cloud LLM fallback for better reliability
+- Setting up rate limiting and API key rotation
+- Implementing comprehensive logging and monitoring
+- Adding backup and disaster recovery

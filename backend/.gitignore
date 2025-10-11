@@ -48,3 +48,11 @@ htmlcov/
 
 # Logs
 *.log
+
+# Environment files (do NOT commit secrets)
+.env
+.env.*
+.env.local
+
+# Local database (already covered by *.db but keep explicit)
+# smart_task_planner.db

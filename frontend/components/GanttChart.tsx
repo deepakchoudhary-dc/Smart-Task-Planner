@@ -75,12 +75,12 @@ export default function GanttChart({ tasks }: GanttChartProps) {
         </div>
 
         {/* Timeline Header */}
-        <div className="flex px-6 py-3 border-b border-slate-100 bg-slate-50/80 backdrop-blur">
-          <div className="w-64 text-xs font-semibold uppercase tracking-wider text-slate-500">Workstream</div>
-          <div className="flex-1 flex justify-between px-4">
+        <div className="flex px-6 py-4 border-b border-slate-100 bg-slate-50/80 backdrop-blur">
+          <div className="w-80 text-xs font-semibold uppercase tracking-wider text-slate-500">Workstream</div>
+          <div className="flex-1 flex justify-between px-6">
             {dayMarkers.map(marker => (
-              <div key={marker.day} className="text-[11px] text-slate-400 text-center">
-                <div className="font-semibold text-slate-500">Day {marker.day}</div>
+              <div key={marker.day} className="text-[11px] text-slate-400 text-center min-w-[60px]">
+                <div className="font-semibold text-slate-500 mb-1">Day {marker.day}</div>
                 <div>{format(marker.date, 'MMM d')}</div>
               </div>
             ))}
@@ -96,15 +96,16 @@ export default function GanttChart({ tasks }: GanttChartProps) {
             const taskEnd = new Date(task.end_date).getTime();
             const startOffset = ((taskStart - minDate) / range) * 100;
             const rawDuration = ((taskEnd - taskStart) / range) * 100;
-            const duration = Math.max(rawDuration, 3);
+            // Ensure minimum width for readability, but allow longer tasks to be wider
+            const duration = Math.max(rawDuration, Math.min(8, task.name.length * 0.8));
 
             return (
               <div
                 key={task.id}
-                className="flex items-stretch px-6 py-4 transition hover:bg-slate-50/70"
+                className="flex items-stretch px-6 py-6 transition hover:bg-slate-50/70"
               >
-                <div className="w-64 pr-4">
-                  <div className="flex items-start gap-2">
+                <div className="w-80 pr-6">
+                  <div className="flex items-start gap-3">
                     <span className="mt-[2px] text-[11px] font-semibold text-slate-400">{index + 1}</span>
                     <div>
                       <p className="text-sm font-semibold text-slate-800 leading-tight">
@@ -129,13 +130,13 @@ export default function GanttChart({ tasks }: GanttChartProps) {
                   )}
                 </div>
 
-                <div className="flex-1 relative h-16">
+                <div className="flex-1 relative h-20">
                   {/* Grid background */}
-                  <div className="absolute inset-0 flex">
+                  <div className="absolute inset-0 flex px-6">
                     {dayMarkers.map(marker => (
                       <div
                         key={marker.day}
-                        className="flex-1 border-l border-dashed border-slate-200/70"
+                        className="flex-1 border-l border-dashed border-slate-200/70 min-w-[60px]"
                       />
                     ))}
                   </div>
@@ -150,7 +151,7 @@ export default function GanttChart({ tasks }: GanttChartProps) {
 
                   {/* Task bar */}
                   <div
-                    className={`absolute top-3 h-10 rounded-xl shadow-sm ring-1 ring-black/5 transition-all duration-300 ${
+                    className={`absolute top-4 h-12 rounded-xl shadow-sm ring-1 ring-black/5 transition-all duration-300 group cursor-pointer ${
                       task.is_complete
                         ? 'bg-emerald-500/85'
                         : task.is_on_critical_path
@@ -161,13 +162,35 @@ export default function GanttChart({ tasks }: GanttChartProps) {
                       left: `${startOffset}%`,
                       width: `${Math.min(duration, 100 - startOffset)}%`,
                     }}
-                    title={`${task.name}\n${format(new Date(task.start_date), 'MMM d')} - ${format(new Date(task.end_date), 'MMM d')}`}
                   >
-                    <div className="flex h-full items-center justify-between px-3 text-[12px] font-medium text-white">
-                      <span className="truncate">{task.name}</span>
-                      <span className="ml-3 shrink-0 text-white/80">
+                    <div className="flex h-full items-center justify-between px-4 text-[13px] font-medium text-white">
+                      <span className="truncate flex-1 mr-2">{task.name}</span>
+                      <span className="shrink-0 text-white/90 font-semibold">
                         {task.expected_duration.toFixed(1)}d
                       </span>
+                    </div>
+                    
+                    {/* Enhanced Tooltip */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 max-w-xs">
+                      <div className="font-semibold mb-1">{task.name}</div>
+                      <div className="text-xs text-gray-300">
+                        {format(new Date(task.start_date), 'MMM d, yyyy')} - {format(new Date(task.end_date), 'MMM d, yyyy')}
+                      </div>
+                      <div className="text-xs text-gray-300 mt-1">
+                        Duration: {task.expected_duration.toFixed(1)} days
+                      </div>
+                      {task.description && (
+                        <div className="text-xs text-gray-300 mt-1 max-w-xs">
+                          {task.description}
+                        </div>
+                      )}
+                      {task.is_on_critical_path && (
+                        <div className="text-xs text-red-300 mt-1 font-medium">
+                          ⚠️ Critical Path Task
+                        </div>
+                      )}
+                      {/* Tooltip arrow */}
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                     </div>
                   </div>
                 </div>

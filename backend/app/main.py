@@ -9,10 +9,14 @@ from sqlalchemy.orm import Session
 from typing import List
 import os
 import requests
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from . import models, schemas
 from .database import engine, get_db, init_db
-from .services import OllamaService, SchedulingService
+from .services import GoogleGenAIService, SchedulingService
 
 
 # Initialize FastAPI app
@@ -32,7 +36,7 @@ app.add_middleware(
 )
 
 # Initialize services
-ollama_service = OllamaService(host=os.getenv("OLLAMA_HOST", "http://localhost:11434"))
+genai_service = GoogleGenAIService(api_key=os.getenv("GOOGLE_GENAI_API_KEY"))
 scheduling_service = SchedulingService()
 
 
@@ -41,7 +45,7 @@ async def startup_event():
     """Initialize database on application startup."""
     init_db()
     print("✓ Database initialized")
-    print(f"✓ Ollama service configured at {ollama_service.host}")
+    print("✓ Google Generative AI service configured")
 
 
 @app.get("/", tags=["Health"])
@@ -68,7 +72,7 @@ async def create_plan(plan_data: schemas.PlanCreate, db: Session = Depends(get_d
     try:
         # Step 1: Generate tasks using LLM
         print(f"Generating tasks for goal: {plan_data.goal}")
-        task_dicts = ollama_service.generate_tasks(plan_data.goal, plan_data.deadline)
+        task_dicts = genai_service.generate_tasks(plan_data.goal, plan_data.deadline)
         
         if not task_dicts:
             raise HTTPException(
@@ -277,7 +281,7 @@ async def refine_plan_with_feedback(
         ]
         
         # Get refined tasks from LLM
-        refined_tasks = ollama_service.refine_plan_with_feedback(
+        refined_tasks = genai_service.refine_plan_with_feedback(
             plan.goal,
             current_tasks,
             feedback_data.feedback
@@ -363,7 +367,7 @@ async def natural_language_update(
         ]
         
         # Process natural language update
-        updated_tasks = ollama_service.process_natural_language_update(
+        updated_tasks = genai_service.process_natural_language_update(
             plan.goal,
             current_tasks,
             update_data.instruction
@@ -437,35 +441,31 @@ async def delete_plan(plan_id: int, db: Session = Depends(get_db)):
     return None
 
 
-@app.get("/api/health/ollama", tags=["Health"])
-async def check_ollama():
+@app.get("/api/health/genai", tags=["Health"])
+async def check_genai():
     """
-    Check if Ollama service is available and Qwen3 model is installed.
+    Check if Google Generative AI service is available and configured.
     """
     try:
-        response = requests.get(f"{ollama_service.host}/api/tags", timeout=5)
-        if response.status_code == 200:
-            models = response.json().get("models", [])
-            model_names = [m.get("name", "") for m in models]
-            has_qwen = any("qwen" in name.lower() for name in model_names)
-            
+        # Test the API by making a simple request
+        test_response = genai_service.model.generate_content("Test connection")
+        if test_response.text:
             return {
                 "status": "healthy",
-                "ollama_host": ollama_service.host,
-                "models_available": model_names,
-                "qwen_installed": has_qwen,
-                "configured_model": ollama_service.model
+                "service": "Google Generative AI",
+                "model": "gemini-2.0-flash",
+                "api_configured": True
             }
         else:
             return {
                 "status": "unhealthy",
-                "error": f"Ollama returned status {response.status_code}"
+                "error": "API returned empty response"
             }
     except Exception as e:
         return {
             "status": "unhealthy",
             "error": str(e),
-            "message": "Make sure Ollama is running on localhost:11434"
+            "message": "Make sure GOOGLE_GENAI_API_KEY is set correctly"
         }
 
 

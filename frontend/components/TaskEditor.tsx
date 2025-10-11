@@ -68,7 +68,7 @@ export default function TaskEditor({ task, allTasks, onSave, onClose }: TaskEdit
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 placeholder-gray-500"
               placeholder="Enter task name"
             />
           </div>
@@ -81,7 +81,7 @@ export default function TaskEditor({ task, allTasks, onSave, onClose }: TaskEdit
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-500"
               rows={3}
               placeholder="Enter task description (optional)"
             />
@@ -101,7 +101,7 @@ export default function TaskEditor({ task, allTasks, onSave, onClose }: TaskEdit
                   onChange={(e) => setOptimistic(parseFloat(e.target.value) || 0)}
                   min="0.1"
                   step="0.1"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
               </div>
               <div>
@@ -112,7 +112,7 @@ export default function TaskEditor({ task, allTasks, onSave, onClose }: TaskEdit
                   onChange={(e) => setMostLikely(parseFloat(e.target.value) || 0)}
                   min="0.1"
                   step="0.1"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
               </div>
               <div>
@@ -123,7 +123,7 @@ export default function TaskEditor({ task, allTasks, onSave, onClose }: TaskEdit
                   onChange={(e) => setPessimistic(parseFloat(e.target.value) || 0)}
                   min="0.1"
                   step="0.1"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
                 />
               </div>
             </div>

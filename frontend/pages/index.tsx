@@ -1,281 +1,303 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
-import { Target, Sparkles, Calendar, TrendingUp, Clock, ChevronRight } from 'lucide-react';
-import { apiClient, PlanSummary } from '@/lib/api';
+import { 
+  Plus, Search, Calendar, Clock, Target, 
+  ChevronRight, Sparkles, Settings, User,
+  Folder, FileText, BarChart3
+} from 'lucide-react';
+import { apiClient, Plan } from '@/lib/api';
 
 export default function Home() {
   const router = useRouter();
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [goal, setGoal] = useState('');
   const [deadline, setDeadline] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [recentPlans, setRecentPlans] = useState<PlanSummary[]>([]);
-  const [ollamaHealthy, setOllamaHealthy] = useState<boolean | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [genaiHealthy, setGenaiHealthy] = useState(false);
 
   useEffect(() => {
-    loadRecentPlans();
-    checkOllamaHealth();
+    loadPlans();
+    checkGenAIHealth();
   }, []);
 
-  const checkOllamaHealth = async () => {
+  const loadPlans = async () => {
     try {
-      const health = await apiClient.checkOllamaHealth();
-      setOllamaHealthy(health.status === 'healthy' && health.qwen_installed);
-    } catch (err) {
-      setOllamaHealthy(false);
-    }
-  };
-
-  const loadRecentPlans = async () => {
-    try {
-      const plans = await apiClient.listPlans();
-      setRecentPlans(plans.slice(0, 5));
-    } catch (err) {
-      console.error('Failed to load plans:', err);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!goal.trim()) {
-      setError('Please enter a goal');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const plan = await apiClient.createPlan({
-        goal: goal.trim(),
-        deadline: deadline ? new Date(deadline).toISOString() : undefined,
-      });
-
-      router.push(`/plan/${plan.id}`);
+      setLoading(true);
+      const plansData = await apiClient.listPlans();
+      setPlans(plansData);
+      setError(null);
     } catch (err: any) {
-      console.error('Failed to create plan:', err);
-      setError(err.response?.data?.detail || 'Failed to create plan. Please check if Ollama is running.');
+      console.error('Failed to load plans:', err);
+      setError('Failed to load plans');
+    } finally {
       setLoading(false);
     }
   };
 
+  const checkGenAIHealth = async () => {
+    try {
+      const health = await apiClient.checkGenAIHealth();
+      setGenaiHealthy(health.status === 'healthy');
+    } catch (err) {
+      console.error('GenAI health check failed:', err);
+      setGenaiHealthy(false);
+    }
+  };
+
+  const handleCreatePlan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!goal.trim() || !deadline) return;
+
+    setCreating(true);
+    try {
+      const newPlan = await apiClient.createPlan({
+        goal: goal.trim(),
+        deadline: new Date(deadline).toISOString(),
+      });
+      
+      setGoal('');
+      setDeadline('');
+      await loadPlans();
+      router.push(`/plan/${newPlan.id}`);
+    } catch (err: any) {
+      console.error('Failed to create plan:', err);
+      alert('Failed to create plan. Please make sure Google GenAI is configured.');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Target className="w-8 h-8 text-primary-600" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
-                Smart Task Planner
-              </h1>
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8 bg-gray-900 rounded flex items-center justify-center">
+                <span className="text-white font-medium text-sm">P</span>
+              </div>
+              <h1 className="text-xl font-semibold text-gray-900">Smart Task Planner</h1>
             </div>
-            <div className="flex items-center space-x-2">
-              {ollamaHealthy === false && (
-                <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
-                  ⚠️ Ollama not detected
-                </span>
-              )}
-              {ollamaHealthy === true && (
-                <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                  ✓ AI Ready
-                </span>
-              )}
+            
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 text-sm">
+                {genaiHealthy ? (
+                  <span className="text-green-600">✓ AI Ready</span>
+                ) : (
+                  <span className="text-red-600">GenAI not configured</span>
+                )}
+              </div>
+              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-gray-600" />
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-4xl mx-auto"
-        >
-          {/* Hero Section */}
-          <div className="text-center mb-12">
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="inline-block mb-4"
-            >
-              <div className="bg-gradient-to-r from-primary-500 to-purple-500 p-4 rounded-2xl shadow-lg">
-                <Sparkles className="w-12 h-12 text-white" />
-              </div>
-            </motion.div>
-            
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-gray-900 via-primary-900 to-purple-900 bg-clip-text text-transparent">
-              Turn Your Goals Into Action
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              AI-powered project planning with CPM/PERT scheduling. 
-              Break down complex goals into actionable tasks with smart dependencies and timelines.
-            </p>
-          </div>
-
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="bg-white p-6 rounded-xl shadow-md border border-gray-100"
-            >
-              <TrendingUp className="w-10 h-10 text-primary-600 mb-3" />
-              <h3 className="font-semibold text-lg mb-2">Critical Path Analysis</h3>
-              <p className="text-sm text-gray-600">Automatically identifies bottlenecks and critical tasks</p>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="bg-white p-6 rounded-xl shadow-md border border-gray-100"
-            >
-              <Clock className="w-10 h-10 text-purple-600 mb-3" />
-              <h3 className="font-semibold text-lg mb-2">PERT Estimation</h3>
-              <p className="text-sm text-gray-600">Three-point estimates for realistic scheduling</p>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="bg-white p-6 rounded-xl shadow-md border border-gray-100"
-            >
-              <Sparkles className="w-10 h-10 text-pink-600 mb-3" />
-              <h3 className="font-semibold text-lg mb-2">AI-Powered</h3>
-              <p className="text-sm text-gray-600">Local LLM generates tasks from natural language</p>
-            </motion.div>
-          </div>
-
-          {/* Create Plan Form */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-2xl shadow-xl p-8 mb-12"
-          >
-            <form onSubmit={handleSubmit}>
-              <div className="mb-6">
-                <label htmlFor="goal" className="block text-sm font-medium text-gray-700 mb-2">
-                  What’s your goal? <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  id="goal"
-                  value={goal}
-                  onChange={(e) => setGoal(e.target.value)}
-                  placeholder="e.g., Launch a new mobile app in 3 months, Organize a company event for 200 people, Complete a house renovation project..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                  rows={4}
-                  disabled={loading}
-                  required
-                />
-              </div>
-
-              <div className="mb-6">
-                <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  Optional Deadline
-                </label>
-                <input
-                  type="date"
-                  id="deadline"
-                  value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  disabled={loading}
-                  min={new Date().toISOString().split('T')[0]}
-                />
-              </div>
-
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
-                >
-                  {error}
-                </motion.div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || !goal.trim()}
-                className="w-full bg-gradient-to-r from-primary-600 to-purple-600 text-white font-semibold py-4 px-6 rounded-lg hover:from-primary-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
-              >
-                {loading ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Creating your plan...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    <span>Generate Smart Plan</span>
-                    <ChevronRight className="w-5 h-5" />
-                  </>
-                )}
-              </button>
-            </form>
-          </motion.div>
-
-          {/* Recent Plans */}
-          {recentPlans.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              <h3 className="text-2xl font-bold mb-6">Recent Plans</h3>
-              <div className="space-y-4">
-                {recentPlans.map((plan, index) => (
-                  <motion.div
-                    key={plan.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 * index }}
-                    whileHover={{ scale: 1.02 }}
-                    onClick={() => router.push(`/plan/${plan.id}`)}
-                    className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg cursor-pointer border border-gray-100 transition-all"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-lg mb-2 text-gray-900">{plan.goal}</h4>
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                          <span className="flex items-center">
-                            <Clock className="w-4 h-4 mr-1" />
-                            {plan.total_duration.toFixed(1)} days
-                          </span>
-                          <span className="flex items-center">
-                            <Target className="w-4 h-4 mr-1" />
-                            {plan.task_count} tasks
-                          </span>
-                          <span>
-                            Created {new Date(plan.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-6 h-6 text-gray-400" />
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t mt-20 py-8 bg-white/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 text-center text-gray-600">
-          <p className="mb-2">Smart Task Planner • Built with Next.js, FastAPI & Qwen3</p>
-          <p className="text-sm">Powered by local AI • No data leaves your machine</p>
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Welcome back</h2>
+          <p className="text-gray-600">Create intelligent project plans with AI-powered task scheduling.</p>
         </div>
-      </footer>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Create New Plan */}
+          <div className="lg:col-span-2">
+            <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Plan</h3>
+              <form onSubmit={handleCreatePlan} className="space-y-4">
+                <div>
+                  <label htmlFor="goal" className="block text-sm font-medium text-gray-700 mb-2">
+                    What do you want to accomplish?
+                  </label>
+                  <textarea
+                    id="goal"
+                    value={goal}
+                    onChange={(e) => setGoal(e.target.value)}
+                    placeholder="e.g., Launch a new mobile app, Organize a company event, Complete a house renovation..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-900 focus:border-transparent resize-none text-gray-900 placeholder-gray-500"
+                    rows={3}
+                    disabled={creating}
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-2">
+                    When do you need it done?
+                  </label>
+                  <input
+                    type="date"
+                    id="deadline"
+                    value={deadline}
+                    onChange={(e) => setDeadline(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-900 focus:border-transparent text-gray-900"
+                    disabled={creating}
+                    min={new Date().toISOString().split('T')[0]}
+                    required
+                  />
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={creating || !goal.trim() || !deadline}
+                  className="w-full bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {creating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Create Plan</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="space-y-4">
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{plans.length}</p>
+                  <p className="text-xs text-gray-500">Active Plans</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Target className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    {plans.reduce((sum, plan) => sum + plan.task_count, 0)}
+                  </p>
+                  <p className="text-xs text-gray-500">Total Tasks</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    {plans.reduce((sum, plan) => sum + plan.total_duration, 0).toFixed(0)}d
+                  </p>
+                  <p className="text-xs text-gray-500">Total Duration</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Plans Section */}
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-medium text-gray-900">Your Plans</h3>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search plans..."
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                />
+              </div>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white border border-gray-200 rounded-lg p-6 animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">Failed to load plans. Please try again.</p>
+            </div>
+          ) : plans.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Folder className="w-8 h-8 text-gray-400" />
+              </div>
+              <h4 className="text-lg font-medium text-gray-900 mb-2">No plans yet</h4>
+              <p className="text-gray-500 mb-4">Create your first plan to get started with AI-powered project management.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {plans.map((plan) => (
+                <motion.div
+                  key={plan.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ y: -2 }}
+                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-all cursor-pointer group"
+                  onClick={() => router.push(`/plan/${plan.id}`)}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <h4 className="font-medium text-gray-900 group-hover:text-gray-700 transition-colors">
+                      {plan.goal}
+                    </h4>
+                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                  </div>
+                  
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Clock className="w-4 h-4 mr-2" />
+                      <span>{plan.total_duration.toFixed(1)} days</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Target className="w-4 h-4 mr-2" />
+                      <span>{plan.task_count} tasks</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      <span>Created {new Date(plan.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/plan/${plan.id}`);
+                      }}
+                      className="flex-1 text-xs px-3 py-1.5 bg-black text-white rounded hover:bg-gray-800 transition-colors"
+                    >
+                      View Plan
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }

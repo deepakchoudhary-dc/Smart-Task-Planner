@@ -1,33 +1,51 @@
 """
 Core services for LLM integration and scheduling logic.
-Handles task generation via Qwen3 and schedule computation using NetworkX.
+Handles task generation via Google Generative AI and schedule computation using NetworkX.
 """
 
 import json
 import math
+import os
 import re
 from datetime import datetime, timedelta
 from statistics import mean
 from typing import Dict, List, Optional, Tuple
 
-import networkx as nx
 import requests
+try:
+    import google.generativeai as genai
+except Exception:
+    genai = None
+import networkx as nx
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from .models import Task, Plan
 
 
-class OllamaService:
+class GoogleGenAIService:
     """
-    Service for interacting with the local Ollama API.
-    Uses Qwen3 model for task generation and plan refinement.
+    Service for interacting with Google's Generative AI API.
+    Uses Gemini model for task generation and plan refinement.
     """
     
-    def __init__(self, host: str = "http://localhost:11434"):
-        self.host = host
-        self.model = "qwen3:1.7b"  # Using Qwen3 1.7B for better performance
+    def __init__(self, api_key: str = None):
+        # Google GenAI key (may contain a Google key or an OpenRouter-style key)
+        self.api_key = api_key or os.getenv("GOOGLE_GENAI_API_KEY")
+
+        # Configure Google GenAI client
+        if not self.api_key:
+            raise ValueError("Google Generative AI API key is required")
+        if genai is None:
+            raise ValueError("google-generativeai package is not installed or failed to import")
+        genai.configure(api_key=self.api_key)
+        # Use an explicit model name here; can be adjusted if needed
+        self.model = genai.GenerativeModel('gemini-2.0-flash')
         
     def generate_tasks(self, goal: str, deadline: Optional[datetime] = None) -> List[Dict]:
-        """Generate domain-specific tasks from a goal using Qwen3."""
+        """Generate domain-specific tasks from a goal using Google Gemini."""
 
         attempts = [
             {
@@ -52,26 +70,18 @@ class OllamaService:
         return self._generate_dynamic_fallback(goal)
 
     def _request_structured_tasks(self, prompt: str, attempt_label: str, goal: str) -> Optional[List[Dict]]:
-        payload: Dict[str, object] = {
-            "model": self.model,
-            "prompt": prompt,
-            "stream": False,
-            "format": "json",
-        }
+        try:
+            # Google Generative AI client
+            response = self.model.generate_content(prompt)
+            if not getattr(response, "text", None):
+                print(f"Google GenAI API ({attempt_label}) returned empty response")
+                return None
 
-        response = requests.post(
-            f"{self.host}/api/generate",
-            json=payload,
-            timeout=120,
-        )
-        if response.status_code != 200:
-            print(f"Ollama API ({attempt_label}) error: {response.status_code}")
+            tasks = self._parse_tasks_from_response(response.text, goal)
+            return tasks
+        except Exception as e:
+            print(f"Google GenAI API ({attempt_label}) error: {e}")
             return None
-
-        result = response.json()
-        response_text = result.get("response", "")
-        tasks = self._parse_tasks_from_response(response_text, goal)
-        return tasks
 
     def _build_primary_prompt(self, goal: str, deadline: Optional[datetime]) -> str:
         deadline_str = f" The launch deadline is {deadline.strftime('%Y-%m-%d')} so ensure timelines are realistic." if deadline else ""
@@ -288,22 +298,9 @@ Return an updated JSON array of tasks incorporating the feedback. Maintain the s
 Return ONLY the JSON array, no additional text."""
 
         try:
-            response = requests.post(
-                f"{self.host}/api/generate",
-                json={
-                    "model": self.model,
-                    "prompt": prompt,
-                    "stream": False,
-                    "format": "json"
-                },
-                timeout=120
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                response_text = result.get("response", "")
-                tasks = self._parse_tasks_from_response(response_text)
-                
+            response = self.model.generate_content(prompt)
+            if response.text:
+                tasks = self._parse_tasks_from_response(response.text)
                 if tasks:
                     return tasks
                 else:
