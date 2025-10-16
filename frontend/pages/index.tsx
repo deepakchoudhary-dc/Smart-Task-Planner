@@ -6,11 +6,11 @@ import {
   ChevronRight, Sparkles, Settings, User,
   Folder, FileText, BarChart3
 } from 'lucide-react';
-import { apiClient, Plan } from '@/lib/api';
+import { apiClient, PlanSummary } from '@/lib/api';
 
 export default function Home() {
   const router = useRouter();
-  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plans, setPlans] = useState<PlanSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [goal, setGoal] = useState('');
