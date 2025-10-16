@@ -6,7 +6,7 @@ import {
   ChevronRight, Sparkles, Settings, User,
   Folder, FileText, BarChart3
 } from 'lucide-react';
-import { apiClient, PlanSummary } from '@/lib/api';
+import { apiClient, PlanSummary } from '../lib/api';
 
 export default function Home() {
   const router = useRouter();

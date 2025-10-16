@@ -6,10 +6,10 @@ import {
   Edit, Save, X, MessageSquare, Sparkles, Download,
   CheckCircle, Circle, Trash2
 } from 'lucide-react';
-import { apiClient, Plan, Task, PlanInsights } from '@/lib/api';
-import GanttChart from '@/components/GanttChart';
-import TaskEditor from '@/components/TaskEditor';
-import FeedbackModal from '@/components/FeedbackModal';
+import { apiClient, Plan, Task, PlanInsights } from '../../lib/api';
+import GanttChart from '../../components/GanttChart';
+import TaskEditor from '../../components/TaskEditor';
+import FeedbackModal from '../../components/FeedbackModal';
 
 export default function PlanDetail() {
   const router = useRouter();

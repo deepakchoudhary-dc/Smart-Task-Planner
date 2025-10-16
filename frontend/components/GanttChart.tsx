@@ -1,4 +1,4 @@
-import { Task } from '@/lib/api';
+import { Task } from '../lib/api';
 import { differenceInCalendarDays, format, isWithinInterval } from 'date-fns';
 
 interface GanttChartProps {

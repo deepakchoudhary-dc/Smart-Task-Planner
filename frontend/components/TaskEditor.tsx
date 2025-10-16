@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Save } from 'lucide-react';
-import { Task } from '@/lib/api';
+import { Task } from '../lib/api';
 
 interface TaskEditorProps {
   task: Task;
