@@ -5,7 +5,19 @@
 
 import axios, { AxiosInstance } from 'axios';
 
-const API_URL = 'http://localhost:8000';
+// Helper to get the API URL at request time (checks runtime override, build-time env, then localhost fallback)
+function getApiUrl(): string {
+  // Check for runtime override (useful for debugging or emergency hotfixes)
+  if (typeof window !== 'undefined' && (window as any).__API_URL) {
+    return (window as any).__API_URL;
+  }
+  // Use build-time Next.js public env var (set in Vercel)
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  // Fallback to localhost for local dev
+  return 'http://localhost:8000';
+}
 
 export interface Task {
   id: number;
@@ -101,7 +113,7 @@ class ApiClient {
 
   constructor() {
     this.client = axios.create({
-      baseURL: API_URL,
+      baseURL: getApiUrl(),
       headers: {
         'Content-Type': 'application/json',
       },
